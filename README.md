@@ -36,15 +36,9 @@ It gives you a reusable operating pattern for iterative research work on:
 
 ---
 
-## Short intro / 简短介绍
-
-**English**
+## Short intro
 
 `practical-autoresearch` is a public methodology repo for running automatic research loops with stronger rigor: baseline-first, evidence-driven, resumable, and designed for real engineering constraints.
-
-**中文**
-
-`practical-autoresearch` 是一个公开的自动研究方法论仓库，强调更强的工程纪律：**基线优先、证据驱动、可恢复、适合真实研发环境**。
 
 ---
 
