@@ -162,3 +162,36 @@ It is:
 > establish truth → test carefully → analyze deeply → update direction → preserve state → repeat
 
 That is the core purpose of this repo.
+
+---
+
+## 10) Multi-agent coordination: single ledger principle (D6)
+
+### Problem
+
+When multiple agents (main session, cron monitors, subagents) run experiments
+concurrently, a subagent may create a separate ledger file or a secondary tracking
+mechanism. This causes experiment numbering to diverge — one agent thinks Exp-006
+is running while another reports Exp-007. Zombie processes run undetected because
+no single view of truth exists.
+
+### Rule
+
+- One single ledger file (`ledger.jsonl`) is the **ONLY** authority for experiment numbers.
+- **NO** split or secondary ledger files allowed under any circumstances.
+- Every experiment **MUST** write a ledger entry (`verdict=RUNNING`) **BEFORE** starting execution.
+- Every experiment **MUST** git commit + push after completion, abort, or kill.
+- Old experiments **MUST** be marked in the ledger (`KILLED`/`ABORTED`) before being superseded.
+- All agents (main, cron, subagent) read and write the **same** ledger file.
+
+### Why this matters
+
+Multi-agent systems with shared state need a single source of truth. Without it,
+agents independently evolve their own view of reality, leading to:
+
+- **Divergent numbering** — different agents assign different experiment IDs
+- **Zombie processes** — old experiments run undetected because no agent owns their lifecycle
+- **Incorrect status reports** — the human receives conflicting information about what is running
+
+This is a general principle for any autonomous research system that uses multiple
+concurrent agents or scheduled monitors.
