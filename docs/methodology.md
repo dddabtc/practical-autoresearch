@@ -195,3 +195,22 @@ agents independently evolve their own view of reality, leading to:
 
 This is a general principle for any autonomous research system that uses multiple
 concurrent agents or scheduled monitors.
+
+## 11. Incremental Validation (D8)
+
+Large benchmark runs must be split into segments with **decision points** between each.
+
+**Pattern:**
+1. Run segment A (smallest, fastest) → analyze results
+2. **Decision point:** metrics OK? → continue to segment B. Metrics bad? → stop, diagnose, fix
+3. Run segment B → analyze results  
+4. **Decision point:** consistent with A? → continue to C. Diverged? → investigate
+5. Repeat until all segments pass or a fix is needed
+
+**Why:**
+- A full blind run that fails at 60% wastes the remaining 40% of compute time
+- Each segment provides actionable signal: which question types fail, which conversations are harder
+- Fixing a problem after 15 minutes is cheaper than after 3 hours
+- Splitting doesn't add total time (segments sum to full run) but adds decision opportunities
+
+**Rule:** Never launch a full benchmark run without first validating on a fast subset. If the subset passes, expand incrementally.
