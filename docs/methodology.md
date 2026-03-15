@@ -214,3 +214,65 @@ Large benchmark runs must be split into segments with **decision points** betwee
 - Splitting doesn't add total time (segments sum to full run) but adds decision opportunities
 
 **Rule:** Never launch a full benchmark run without first validating on a fast subset. If the subset passes, expand incrementally.
+
+## 12. Mandatory Experiment Logging (D11)
+
+Every experiment **MUST** write a log file for monitoring and post-mortem analysis.
+
+**Log file:** `experiments/NNN/run.log`
+
+**What to log:**
+- **At startup:** timestamp, hypothesis, config/parameters
+- **Per item:** item number, result, score
+- **Progress checkpoint:** every N items (e.g., every 10) — cumulative stats so far
+- **At completion:** summary stats, total runtime, final verdict
+
+**Implementation rules:**
+- Use `flush=True` / unbuffered output so `tail -f run.log` works in real time
+- Never rely on agent announce alone — the log file is the **primary record**
+- If the experiment crashes, the log file is your post-mortem; session transcripts may be lost
+
+**Why:**
+Experiments 008–010 showed that without persistent logging, crashed or long-running experiments
+leave no trace. The agent's announce message may never arrive if the session dies. A log file
+on disk is the only reliable record of what happened.
+
+## 13. Sub-experiment Structure (D12)
+
+Experiments may have **sub-experiments** when testing variants of the same hypothesis.
+
+**Naming convention:** `NNN.M` (e.g., 010.1, 010.2, 010.3)
+- Main experiment number = hypothesis direction
+- Sub-experiment number = specific implementation variant
+
+**Rules:**
+- Each sub-experiment is independently scored with its own metrics
+- Main experiment verdict is based on the **best sub-experiment result**
+- Human sets the main hypothesis; LLM can auto-generate variant designs (hybrid approach)
+- Sub-experiments share the same `experiments/NNN/` directory with clearly labeled outputs
+- Each sub-experiment should have its own log: `experiments/NNN/run_NNN.M.log`
+
+**When to use:**
+- Testing multiple prompt variants for the same strategy
+- Comparing parameter settings (e.g., different chunk sizes, thresholds)
+- A/B testing implementation approaches for one idea
+
+**When NOT to use:**
+- Fundamentally different hypotheses → use separate experiment numbers
+- Sequential refinements where each builds on the last → use separate rounds
+
+## 14. SOTA Scan: Adversarial & Unanswerable Defense (D13)
+
+When performing SOTA scans (per Section 5), **specifically search for**:
+
+- How SOTA systems handle **adversarial/unanswerable questions**
+- **RAG hallucination guard** / faithfulness checking methods
+- **Abstention mechanisms** ("I don't know" strategies, refusal calibration)
+- **Grounding verification** approaches (checking answers against retrieved evidence)
+
+**Why:**
+Experiments 008–010 revealed that adversarial and unanswerable questions are a major
+failure category. Standard SOTA scans focus on accuracy improvement but miss the
+equally important problem of knowing when NOT to answer. Systems that always produce
+an answer score worse on benchmarks that penalize hallucinated responses to
+unanswerable questions.
