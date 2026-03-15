@@ -165,14 +165,14 @@ That is the core purpose of this repo.
 
 ---
 
-## 10) Multi-agent coordination: single ledger principle (D6)
+## 10) Multi-agent Coordination: Single Ledger Principle
 
 ### Problem
 
 When multiple agents (main session, cron monitors, subagents) run experiments
 concurrently, a subagent may create a separate ledger file or a secondary tracking
-mechanism. This causes experiment numbering to diverge — one agent thinks Exp-006
-is running while another reports Exp-007. Zombie processes run undetected because
+mechanism. This causes experiment numbering to diverge — one agent thinks experiment N
+is running while another reports experiment N+1. Zombie processes run undetected because
 no single view of truth exists.
 
 ### Rule
@@ -193,29 +193,30 @@ agents independently evolve their own view of reality, leading to:
 - **Zombie processes** — old experiments run undetected because no agent owns their lifecycle
 - **Incorrect status reports** — the human receives conflicting information about what is running
 
-This is a general principle for any autonomous research system that uses multiple
-concurrent agents or scheduled monitors.
+---
 
-## 11. Incremental Validation (D8)
+## 11) Incremental Validation
 
 Large benchmark runs must be split into segments with **decision points** between each.
 
 **Pattern:**
 1. Run segment A (smallest, fastest) → analyze results
 2. **Decision point:** metrics OK? → continue to segment B. Metrics bad? → stop, diagnose, fix
-3. Run segment B → analyze results  
+3. Run segment B → analyze results
 4. **Decision point:** consistent with A? → continue to C. Diverged? → investigate
 5. Repeat until all segments pass or a fix is needed
 
 **Why:**
 - A full blind run that fails at 60% wastes the remaining 40% of compute time
-- Each segment provides actionable signal: which question types fail, which conversations are harder
+- Each segment provides actionable signal: which categories fail, which subsets are harder
 - Fixing a problem after 15 minutes is cheaper than after 3 hours
 - Splitting doesn't add total time (segments sum to full run) but adds decision opportunities
 
 **Rule:** Never launch a full benchmark run without first validating on a fast subset. If the subset passes, expand incrementally.
 
-## 12. Mandatory Experiment Logging (D11)
+---
+
+## 12) Mandatory Experiment Logging
 
 Every experiment **MUST** write a log file for monitoring and post-mortem analysis.
 
@@ -233,15 +234,17 @@ Every experiment **MUST** write a log file for monitoring and post-mortem analys
 - If the experiment crashes, the log file is your post-mortem; session transcripts may be lost
 
 **Why:**
-Experiments 008–010 showed that without persistent logging, crashed or long-running experiments
-leave no trace. The agent's announce message may never arrive if the session dies. A log file
+Without persistent logging, crashed or long-running experiments leave no trace.
+The agent's announce message may never arrive if the session dies. A log file
 on disk is the only reliable record of what happened.
 
-## 13. Sub-experiment Structure (D12)
+---
+
+## 13) Sub-experiment Structure
 
 Experiments may have **sub-experiments** when testing variants of the same hypothesis.
 
-**Naming convention:** `NNN.M` (e.g., 010.1, 010.2, 010.3)
+**Naming convention:** `NNN.M` (e.g., 005.1, 005.2, 005.3)
 - Main experiment number = hypothesis direction
 - Sub-experiment number = specific implementation variant
 
@@ -261,52 +264,65 @@ Experiments may have **sub-experiments** when testing variants of the same hypot
 - Fundamentally different hypotheses → use separate experiment numbers
 - Sequential refinements where each builds on the last → use separate rounds
 
-## 14. SOTA Scan: Adversarial & Unanswerable Defense (D13)
+---
+
+## 14) SOTA Scan: Defensive and Edge-case Strategies
 
 When performing SOTA scans (per Section 5), **specifically search for**:
 
-- How SOTA systems handle **adversarial/unanswerable questions**
-- **RAG hallucination guard** / faithfulness checking methods
+- How SOTA systems handle **adversarial, edge-case, or unanswerable inputs**
+- **Hallucination guard** / faithfulness checking methods
 - **Abstention mechanisms** ("I don't know" strategies, refusal calibration)
-- **Grounding verification** approaches (checking answers against retrieved evidence)
+- **Grounding verification** approaches (checking outputs against retrieved evidence)
 
 **Why:**
-Experiments 008–010 revealed that adversarial and unanswerable questions are a major
-failure category. Standard SOTA scans focus on accuracy improvement but miss the
-equally important problem of knowing when NOT to answer. Systems that always produce
-an answer score worse on benchmarks that penalize hallucinated responses to
-unanswerable questions.
+Standard SOTA scans focus on accuracy improvement but miss the equally important
+problem of knowing when NOT to produce an answer. Systems that always produce
+an output score worse on benchmarks that penalize hallucinated or fabricated
+responses. Defensive strategies deserve dedicated scan attention — they are rarely
+discovered by accident.
 
-## 15. Data Quality Audit: Pre-experiment Gate (D14)
+---
 
-Before starting any experiment that depends on a data pipeline (e.g., KG tables, extracted facts, embeddings), **MUST** run a data quality audit:
+## 15) Data Quality Audit: Pre-experiment Gate
+
+Before starting any experiment that depends on a data pipeline (e.g., structured tables, extracted facts, embeddings), **MUST** run a data quality audit:
 
 1. **Schema check**: Are all expected tables/columns present and populated? Any NULL columns that should have values?
-2. **Sample inspection**: Pull 10 random records, manually verify they look correct (e.g., attribute_name is actually a meaningful attribute, not a sentence fragment)
-3. **Format consistency**: Check time formats (all ISO 8601?), entity names (normalized?), type labels (controlled vocabulary or wild?)
+2. **Sample inspection**: Pull 10 random records, manually verify they look correct (e.g., field values are meaningful attributes, not malformed fragments)
+3. **Format consistency**: Check date/time formats (all ISO 8601?), entity names (normalized?), type labels (controlled vocabulary or wild?)
 4. **Coverage check**: What % of source data made it through the pipeline? Any systematic drops?
-5. **Link integrity**: Can you trace from KG entity → segment → original text? Any broken links?
+5. **Link integrity**: Can you trace from structured record → source segment → original text? Any broken links?
 
 If audit reveals quality issues, fix the write pipeline **BEFORE** running read-side experiments. Garbage in = garbage out.
 
 **Rule:** No read-side experiment may begin until the data quality audit passes. This is a gate, not a suggestion.
 
 **Why:**
-Exp-010 spent 3 sub-experiments testing read-side query approaches before discovering the KG data itself had quality issues (attribute_names were sentence fragments, time formats inconsistent, entity_type_normalized always NULL). The read-side experiments were doomed from the start.
+Testing downstream query approaches before validating upstream data quality wastes
+experiment rounds. The fix is cheap; the wasted experiments are not. Common symptoms:
+field values were malformed, formats inconsistent, expected columns unpopulated.
+Multiple experiment rounds can be burned testing read-side approaches that were doomed
+from the start because the underlying data was broken.
 
-## 16. Failure Case Sampling: Post-REJECT Mandatory (D15)
+---
+
+## 16) Failure Case Sampling: Post-REJECT Mandatory
 
 After every REJECT, before designing the next experiment, **sample 5-10 failure cases** and classify the error type:
 
-1. **Retrieval miss**: Correct answer exists in DB but wasn't retrieved (recall problem)
+1. **Retrieval miss**: Correct answer exists in the data but wasn't retrieved (recall problem)
 2. **Retrieval noise**: Correct answer retrieved but buried under irrelevant results (ranking problem)
-3. **Answer generation error**: Correct context retrieved and ranked well, but LLM generated wrong answer (generation problem)
-4. **Data gap**: Information needed to answer doesn't exist in the stored data (write pipeline problem)
-5. **Adversarial trap**: Question asks about fabricated info, system hallucinated an answer instead of saying "not mentioned" (grounding problem)
+3. **Generation error**: Correct context retrieved and ranked well, but the model generated a wrong answer (generation problem)
+4. **Data gap**: Information needed to answer doesn't exist in the stored data (pipeline problem)
+5. **Grounding failure**: Input asks about fabricated or nonexistent info, system hallucinated an answer instead of abstaining (grounding problem)
 
 Record the distribution in the round-log. This tells you **WHERE** in the pipeline to focus next, instead of guessing.
 
 **Rule:** No next-experiment design after a REJECT without a failure case sample and error-type distribution.
 
 **Why:**
-Exp-008/009 would have benefited from this — sampling adversarial failures would have revealed the "same topic, fabricated detail" pattern earlier, avoiding the wasted gate-threshold experiment (009).
+Without systematic failure sampling, teams guess at root causes and design experiments
+that target the wrong pipeline stage. Sampling failures and classifying them by error
+type reveals the actual distribution — often a single category dominates, and fixing
+that category is far more effective than broad-spectrum changes.
