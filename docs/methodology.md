@@ -276,3 +276,37 @@ failure category. Standard SOTA scans focus on accuracy improvement but miss the
 equally important problem of knowing when NOT to answer. Systems that always produce
 an answer score worse on benchmarks that penalize hallucinated responses to
 unanswerable questions.
+
+## 15. Data Quality Audit: Pre-experiment Gate (D14)
+
+Before starting any experiment that depends on a data pipeline (e.g., KG tables, extracted facts, embeddings), **MUST** run a data quality audit:
+
+1. **Schema check**: Are all expected tables/columns present and populated? Any NULL columns that should have values?
+2. **Sample inspection**: Pull 10 random records, manually verify they look correct (e.g., attribute_name is actually a meaningful attribute, not a sentence fragment)
+3. **Format consistency**: Check time formats (all ISO 8601?), entity names (normalized?), type labels (controlled vocabulary or wild?)
+4. **Coverage check**: What % of source data made it through the pipeline? Any systematic drops?
+5. **Link integrity**: Can you trace from KG entity → segment → original text? Any broken links?
+
+If audit reveals quality issues, fix the write pipeline **BEFORE** running read-side experiments. Garbage in = garbage out.
+
+**Rule:** No read-side experiment may begin until the data quality audit passes. This is a gate, not a suggestion.
+
+**Why:**
+Exp-010 spent 3 sub-experiments testing read-side query approaches before discovering the KG data itself had quality issues (attribute_names were sentence fragments, time formats inconsistent, entity_type_normalized always NULL). The read-side experiments were doomed from the start.
+
+## 16. Failure Case Sampling: Post-REJECT Mandatory (D15)
+
+After every REJECT, before designing the next experiment, **sample 5-10 failure cases** and classify the error type:
+
+1. **Retrieval miss**: Correct answer exists in DB but wasn't retrieved (recall problem)
+2. **Retrieval noise**: Correct answer retrieved but buried under irrelevant results (ranking problem)
+3. **Answer generation error**: Correct context retrieved and ranked well, but LLM generated wrong answer (generation problem)
+4. **Data gap**: Information needed to answer doesn't exist in the stored data (write pipeline problem)
+5. **Adversarial trap**: Question asks about fabricated info, system hallucinated an answer instead of saying "not mentioned" (grounding problem)
+
+Record the distribution in the round-log. This tells you **WHERE** in the pipeline to focus next, instead of guessing.
+
+**Rule:** No next-experiment design after a REJECT without a failure case sample and error-type distribution.
+
+**Why:**
+Exp-008/009 would have benefited from this — sampling adversarial failures would have revealed the "same topic, fabricated detail" pattern earlier, avoiding the wasted gate-threshold experiment (009).
