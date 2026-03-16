@@ -338,3 +338,16 @@ It is:
 ---
 
 _This document is living. Update it as new principles are learned._
+
+
+## Dual Validation (Design Spec ↔ External Research)
+
+When your project has a design specification, treat it as equal-weight evidence alongside external research. Analyze both in the same framework to find convergence or divergence.
+
+- Design spec = hypothesis from first principles
+- External research (SOTA papers, prior art) = independent evidence
+- **Convergence** (both agree) → strong signal, move fast
+- **Only one source** → gather more evidence before committing
+- **Conflict** → investigate which is wrong
+
+Put both in the SAME analysis framework. Side-by-side analysis reveals convergence faster than treating them sequentially. Don't treat external research as the sole source of direction while ignoring your own design, or vice versa.
