@@ -159,14 +159,6 @@ my-autoresearch-worktree/
 
 ---
 
-## Implementations
-
-| Project | Description |
-|---------|-------------|
-| [autoresearch-playbook](https://github.com/dddabtc/autoresearch-playbook) | A working implementation as an OpenClaw skill + Python engine. Turns a one-sentence request ("research this repo and improve the benchmark to 90%") into a fully autonomous experiment loop with discovery, baseline verification, telescope method, LLM-driven experiment design, acceptance gates, and durable file-based state. |
-
----
-
 ## Good fit for
 
 This repo is especially useful for people working on:
