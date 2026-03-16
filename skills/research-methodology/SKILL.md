@@ -105,12 +105,32 @@ After every REJECT, before designing the next experiment, **sample 5-10 failure 
 
 Record the distribution. This tells you WHERE in the pipeline to focus, instead of guessing.
 
-## 10. Dual-Lane System (Multi-Agent)
+## 10. Dual-Lane Research System (Auto + Manual)
 
-- **Auto lane** (cron/subagent): Mechanical experiments, cannot final ACCEPT (only PENDING_REVIEW).
-- **Manual lane** (main session): Direction, architecture, final decisions.
-- Same ledger, `lane` field distinguishes.
-- Auto lane checks for manual RUNNING before starting.
+Split research into two parallel lanes sharing a single ledger:
+
+**Auto Lane** (autonomous/cron-driven):
+- Runs mechanical experiments: parameter sweeps, baseline validation, simple variants
+- Operates on fixed schedule without human intervention
+- Cannot make final ACCEPT decisions — only PENDING_REVIEW
+- Checks for manual lane activity before starting (no conflicts)
+- Runs SOTA scans when triggered by plateau protocol
+
+**Manual Lane** (human-directed):
+- Sets research direction and architecture decisions
+- Designs novel experiments based on deeper analysis
+- Makes final ACCEPT/REJECT verdicts
+- Can adopt auto lane results by confirming verdict
+
+**Shared Infrastructure:**
+- Single ledger (one source of truth for all experiment numbers)
+- Lane field distinguishes origin
+- Both lanes write to same status files
+- Merge protocol: auto results are provisional until manual review
+
+**Why it works:** Human creativity + machine throughput. Auto lane discovers dead ends cheaply (burns compute, not human attention). Manual lane focuses on direction, not grinding. Neither blocks the other — truly parallel.
+
+**When to use:** Any research project where (1) many experiments need running, (2) some are mechanical and some need creative design, (3) you want continuous progress even when the researcher isn't actively working.
 
 ## Key Findings (Permanent Reference)
 

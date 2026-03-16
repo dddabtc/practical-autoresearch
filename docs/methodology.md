@@ -351,3 +351,36 @@ When your project has a design specification, treat it as equal-weight evidence 
 - **Conflict** → investigate which is wrong
 
 Put both in the SAME analysis framework. Side-by-side analysis reveals convergence faster than treating them sequentially. Don't treat external research as the sole source of direction while ignoring your own design, or vice versa.
+
+
+## Dual-Lane Research System (Auto + Manual)
+
+Split research into autonomous and human-directed lanes sharing a single experiment ledger. The autonomous lane runs mechanical experiments continuously and flags results for review. The human-directed lane sets research direction and makes final accept/reject decisions. Neither lane blocks the other.
+
+### Auto Lane (autonomous/cron-driven)
+- Runs mechanical experiments: parameter sweeps, baseline validation, simple variants
+- Operates on fixed schedule without human intervention
+- Cannot make final ACCEPT decisions — only PENDING_REVIEW
+- Checks for manual lane activity before starting (no conflicts)
+- Runs SOTA scans when triggered by plateau protocol
+
+### Manual Lane (human-directed)
+- Sets research direction and architecture decisions
+- Designs novel experiments based on deeper analysis
+- Makes final ACCEPT/REJECT verdicts
+- Can adopt auto lane results by confirming verdict
+
+### Shared Infrastructure
+- Single ledger (one source of truth for all experiment numbers)
+- Lane field distinguishes origin
+- Both lanes write to same status files
+- Merge protocol: auto results are provisional until manual review
+
+### Why it works
+- Human creativity + machine throughput
+- Auto lane discovers dead ends cheaply (burns compute, not human attention)
+- Manual lane focuses on direction, not grinding
+- Neither blocks the other — truly parallel
+
+### When to use
+Any research project where (1) many experiments need running, (2) some are mechanical (parameter sweeps) and some need creative design, (3) you want continuous progress even when the researcher isn't actively working.
