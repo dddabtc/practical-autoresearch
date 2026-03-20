@@ -300,6 +300,39 @@ At any time, an observer must be able to determine:
 3. **Current accuracy?** → cumulative stats in the log (printed every N items)
 4. **ETA?** → items/sec × remaining items (printed in log)
 
+### Experiment Monitor
+
+A monitor process should watch running experiments and report progress at regular intervals.
+
+**What the monitor does:**
+
+1. Check which experiments are running (tmux sessions, process list)
+2. Read the latest checkpoint/log to get current progress (items done, accuracy so far, ETA)
+3. Report to the configured channel (Telegram, Discord, etc.) at set intervals
+4. Detect anomalies: stalled experiments (no progress for N minutes), crashes (tmux session gone but not completed), error spikes
+
+**Implementation options:**
+
+- **Cron job** — runs every N minutes, reads log/checkpoint, sends summary if there's progress
+- **Heartbeat integration** — add experiment monitoring to the agent's heartbeat checks
+- **Dedicated watcher script** — `scripts/monitor.py` that tails logs and reports
+
+**Report format (minimal):**
+
+```
+Exp-001 [S1 temporal] 47/105 QA (44.8%) | acc: 72.3% | ETA: 12min
+Exp-002 [S3 iterative] not started
+```
+
+**Report triggers:**
+
+- At fixed intervals (e.g., every 10 minutes while an experiment is running)
+- On experiment completion (final results)
+- On experiment failure/crash (alert immediately)
+- On milestone (25%, 50%, 75%, 100%)
+
+**Rule:** Long-running experiments (>10 minutes) MUST have monitoring. The researcher should never need to manually check — progress comes to them.
+
 ---
 
 ## 17) Experiment Directory Structure
