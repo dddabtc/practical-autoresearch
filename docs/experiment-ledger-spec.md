@@ -120,6 +120,8 @@ You may also include:
 - `ledger.jsonl` → structured history
 - `CURRENT_STATUS.md` → latest human-readable snapshot
 - `program.md` → goals and future queue
-- `experiments/NNN/round-log.md` → full per-round narrative detail
+- `experiments/NNN/README.md` → per-experiment summary (hypothesis, results, verdict)
+- `experiments/NNN/blob/` → data artifacts (result JSONs, checkpoints, logs, diffs)
+- `experiments/NNN/thoughts/` → analysis notes (failure sampling, 5-question analysis, decision reasoning)
 
-The ledger should be enough for quick resumption and quantitative review.
+The ledger should be enough for quick resumption and quantitative review. The experiment directory provides full context for deep inspection.

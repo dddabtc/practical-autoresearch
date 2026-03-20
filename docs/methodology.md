@@ -274,11 +274,82 @@ Every experiment MUST write a persistent log file.
 
 ---
 
-## 17) Sub-experiment Structure
+## 17) Experiment Directory Structure
+
+Every experiment MUST have its own directory with a standard layout:
+
+```
+experiments/
+├── 001/
+│   ├── README.md        # Hypothesis, config, results, verdict
+│   ├── blob/            # Data artifacts: result JSONs, checkpoints, logs, diffs
+│   └── thoughts/        # Analysis notes, failure sampling, decision reasoning
+├── 002/
+│   ├── README.md
+│   ├── blob/
+│   └── thoughts/
+└── ...
+```
+
+### README.md (required)
+
+Each experiment README must contain:
+
+- **Experiment ID** and timestamp
+- **Hypothesis** — what you're testing and why
+- **Change summary** — what was modified (files, config, prompts)
+- **Baseline** — what you're comparing against
+- **Results** — metrics, per-category breakdown, sample size
+- **Verdict** — ACCEPT / REJECT / PENDING_REVIEW / BLOCKED
+- **Reason** — why the verdict was made (cite evidence)
+- **Next step** — what follows from this result
+
+### blob/ (required)
+
+Store all data artifacts here:
+
+- Result JSON files (benchmark output)
+- Checkpoint files
+- Log files (stdout/stderr from runs)
+- Diff patches (code changes)
+- Any generated data
+
+**Rule:** If an artifact is needed to reproduce or verify the experiment, it goes in blob/.
+
+### thoughts/ (required)
+
+Store all analysis and reasoning here:
+
+- Failure case sampling notes (§19)
+- 5-question post-round analysis (§4)
+- Seesaw analysis (if cross-benchmark)
+- Decision reasoning that doesn't fit in README
+- Comparison with prior experiments
+
+**Rule:** thoughts/ is for human-readable analysis. blob/ is for machine-readable data. Don't mix them.
+
+### Naming
+
+- Use zero-padded numbers: `001`, `002`, ..., `099`, `100`
+- Sub-experiments: `001.1`, `001.2` (see §17b below)
+- Directory name = experiment ID from the ledger
+
+### Why this structure
+
+1. **Reproducibility** — everything needed to understand and reproduce is in one place
+2. **Resumability** — a new session can read README.md and know exactly what happened
+3. **Auditability** — thoughts/ preserves the reasoning chain, not just the numbers
+4. **Separation of concerns** — data (blob/) vs analysis (thoughts/) vs summary (README.md)
+
+---
+
+## 17b) Sub-experiment Structure
 
 Experiments may have sub-experiments when testing variants of the same hypothesis.
 
 - Naming: `NNN.M` (e.g., 005.1, 005.2, 005.3).
+- Sub-experiments live inside the parent directory: `experiments/005/005.1/`, `experiments/005/005.2/`
+- Each sub-experiment has its own blob/ and thoughts/ if needed, or shares the parent's.
 - Each sub-experiment is independently scored.
 - Main experiment verdict based on the best sub-experiment result.
 - Use for: multiple prompt variants, parameter settings, implementation approaches.
