@@ -271,6 +271,34 @@ Every experiment MUST write a persistent log file.
 - At completion: summary stats, total runtime, final verdict.
 - Use unbuffered output so `tail -f` works in real time.
 - The log file is the PRIMARY record; session transcripts may be lost.
+- Log file goes in `experiments/NNN/blob/run.log`.
+
+### Execution Environment
+
+- **Use tmux (or screen) for all experiment runs.** Never run experiments in a session that can time out or disconnect.
+- Session naming convention: `exp-NNN` (e.g., `tmux new -s exp-001`).
+- This ensures: (1) experiments survive disconnects, (2) progress can be checked anytime via `tmux attach`, (3) experiments can be stopped with Ctrl-C and resumed.
+
+### Stop and Resume
+
+Every experiment MUST support stop-and-resume:
+
+- Write checkpoint after every item (or every N items for fast loops).
+- On startup, check for existing checkpoint and resume from last completed item.
+- Checkpoint file goes in `experiments/NNN/blob/checkpoint.jsonl` (or similar).
+- Stopping an experiment (Ctrl-C, kill, machine reboot) must NOT corrupt the checkpoint.
+- Resuming must produce identical results to a clean run (no duplicate items, no skipped items).
+
+**Rule:** If an experiment cannot be stopped and resumed without data loss, it is not production-ready.
+
+### Progress Visibility
+
+At any time, an observer must be able to determine:
+
+1. **Is it running?** → `tmux ls` or `ps aux | grep exp-NNN`
+2. **How far along?** → `tail -1 experiments/NNN/blob/run.log` or `wc -l experiments/NNN/blob/checkpoint.jsonl`
+3. **Current accuracy?** → cumulative stats in the log (printed every N items)
+4. **ETA?** → items/sec × remaining items (printed in log)
 
 ---
 
